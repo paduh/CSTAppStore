@@ -10,7 +10,7 @@ import UIKit
 
 class SearchResultCell: UICollectionViewCell {
     
-    var imgView: UIImageView = {
+    var appIconImgView: UIImageView = {
         let iv = UIImageView()
         iv.backgroundColor = .red
         iv.widthAnchor.constraint(equalToConstant: 64).isActive = true
@@ -22,7 +22,6 @@ class SearchResultCell: UICollectionViewCell {
     var nameLbl: UILabel = {
         let lbl = UILabel()
         lbl.text = "App Name"
-        lbl.backgroundColor = UIColor.blue
         return lbl
     }()
     
@@ -44,38 +43,52 @@ class SearchResultCell: UICollectionViewCell {
         btn.setTitleColor(.blue, for: .normal)
         btn.titleLabel?.font = .boldSystemFont(ofSize: 14)
         btn.layer.cornerRadius = 16
-        btn.backgroundColor = UIColor.darkGray
+        btn.backgroundColor = UIColor(white: 0.95, alpha: 1)
         btn.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        btn.heightAnchor.constraint(equalToConstant: 32).isActive = true
         return btn
     }()
     
+    lazy var screenShot1ImageView = self.createScreenShotImageView()
+    lazy var screenShot2ImageView = self.createScreenShotImageView()
+    lazy var screenShot3ImageView = self.createScreenShotImageView()
+
+    fileprivate func createScreenShotImageView() -> UIImageView {
+        let iv = UIImageView()
+        iv.backgroundColor = .blue
+        return iv
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
-        backgroundColor = .green
-        
-        let lblStackView = UIStackView(arrangedSubviews: [
-                nameLbl,
-                categoryLbl,
-                ratingsLbl
-            ])
-        lblStackView.axis = .vertical
-        
-        let stackView = UIStackView(arrangedSubviews: [
-                imgView,
-                lblStackView,
+
+        let infoStackView = UIStackView(arrangedSubviews: [
+                appIconImgView,
+                VerticalStackView(arrangedSubviews: [
+                    nameLbl,
+                    categoryLbl,
+                    ratingsLbl
+                    ]),
                 getBtn
             ])
-        stackView.spacing = 12
-        stackView.alignment = .center
+        infoStackView.spacing = 12
+        infoStackView.alignment = .center
         
-        addSubview(stackView)
+        let screenhotStackView = UIStackView(arrangedSubviews: [
+            screenShot1ImageView,
+            screenShot2ImageView,
+            screenShot3ImageView
+            ])
+        screenhotStackView.spacing = 12
+        screenhotStackView.distribution = .fillEqually
         
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.topAnchor.constraint(equalTo: topAnchor, constant: 0).isActive = true
-        stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16).isActive = true
-        stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16).isActive = true
-        stackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
+        let overallStackView = VerticalStackView(arrangedSubviews: [
+                infoStackView,
+                screenhotStackView
+            ], spacing: 16)
+        
+        addSubview(overallStackView)
+        overallStackView.fillSuperview(padding: UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16))
     }
     
     required init?(coder aDecoder: NSCoder) {
