@@ -7,8 +7,28 @@
 //
 
 import UIKit
+import SDWebImage
 
 class SearchResultCell: UICollectionViewCell {
+    
+    var appResult: Result! {
+        didSet {
+            nameLbl.text = appResult.trackName
+            categoryLbl.text = appResult.primaryGenreName
+            ratingsLbl.text = "\(appResult.averageUserRating ?? 0)"
+            guard let appIconUrl = URL(string: appResult.artworkUrl100) else { return }
+            appIconImgView.sd_setImage(with: appIconUrl)
+            screenShot1ImageView.sd_setImage(with: URL(string: appResult.screenshotUrls[0]))
+           
+            if appResult.screenshotUrls.count > 1 {
+                screenShot2ImageView.sd_setImage(with: URL(string: appResult.screenshotUrls[1]))
+            }
+            
+            if appResult.screenshotUrls.count > 2 {
+                screenShot3ImageView.sd_setImage(with: URL(string: appResult.screenshotUrls[2]))
+            }
+        }
+    }
     
     var appIconImgView: UIImageView = {
         let iv = UIImageView()
@@ -16,6 +36,7 @@ class SearchResultCell: UICollectionViewCell {
         iv.widthAnchor.constraint(equalToConstant: 64).isActive = true
         iv.heightAnchor.constraint(equalToConstant: 64).isActive = true
         iv.layer.cornerRadius = 12
+        iv.clipsToBounds = true
         return iv
     }()
     
@@ -55,7 +76,6 @@ class SearchResultCell: UICollectionViewCell {
 
     fileprivate func createScreenShotImageView() -> UIImageView {
         let iv = UIImageView()
-        iv.backgroundColor = .blue
         return iv
     }
     
