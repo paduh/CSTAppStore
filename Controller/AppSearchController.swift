@@ -10,8 +10,20 @@ import UIKit
 
 class AppSearchController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
     
+    
+    fileprivate let searchController = UISearchController(searchResultsController: nil)
     fileprivate let cellId = "cellId"
     fileprivate var appResults = [Result]()
+    fileprivate var timer: Timer?
+    
+    fileprivate let enterSearchLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.text = "Please enter search text above..."
+        lbl.font = UIFont.boldSystemFont(ofSize: 20)
+        lbl.textAlignment = .center
+        return lbl
+    }()
+    
     init() {
         super.init(collectionViewLayout: UICollectionViewFlowLayout())
     }
@@ -26,20 +38,24 @@ class AppSearchController: UICollectionViewController, UICollectionViewDelegateF
         collectionView.backgroundColor = .white
         collectionView.register(SearchResultCell.self, forCellWithReuseIdentifier: cellId)
         
-        APIService.shared.fetchApps { [weak self] (results, error) in
-            guard let strongSelf = self else { return }
-            if let error = error {
-                print("An error has occures", error)
-                return
-            }
-            guard let results = results else { return }
-            strongSelf.appResults = results
-        }
+        
+        collectionView.addSubview(enterSearchLabel)
+        enterSearchLabel.fillSuperview(padding: UIEdgeInsets.init(top: 100, left: 50, bottom: 0, right: 50))
+        
+        setupSearchBar()
+    }
+    
+    fileprivate func setupSearchBar() {
+        definesPresentationContext = true
+        navigationItem.searchController = self.searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        searchController.dimsBackgroundDuringPresentation = false
+        searchController.searchBar.delegate = self
     }
    
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        
+        enterSearchLabel.isHidden = self.appResults.count != 0
         return appResults.count
     }
     
@@ -54,5 +70,33 @@ class AppSearchController: UICollectionViewController, UICollectionViewDelegateF
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
         return .init(width: view.frame.width, height: 350)
+    }
+}
+
+
+extension AppSearchController: UISearchBarDelegate {
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        
+        timer?.invalidate()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false, block: { (_) in
+            
+            APIService.shared.fetchApps(searchTerm: searchText) { (result, error) in
+                
+                if let error = error {
+                    //Handle Error show Alert with error
+                    print("An error has occured \(error.localizedDescription)")
+                    return
+                }
+                
+                if let result = result {
+                    self.appResults = result
+                    DispatchQueue.main.async {
+                        self.collectionView.reloadData()
+                    }
+                }
+            }
+        })
     }
 }
